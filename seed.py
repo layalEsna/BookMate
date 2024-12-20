@@ -24,6 +24,16 @@ if __name__ == '__main__':
         db.session.add(book)
         db.session.commit()
 
+        user = User(
+            username = fake.user_name(),
+            password = fake.password(),
+            email = fake.email()
+        )
+
+        db.session.add(user)
+        db.session.commit()
+
+
 
 
 
