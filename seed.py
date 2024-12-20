@@ -8,7 +8,7 @@ from faker import Faker
 
 # Local imports
 from app import app
-from models import db
+from models import db, Book, User, Review
 
 if __name__ == '__main__':
     fake = Faker()
@@ -16,6 +16,13 @@ if __name__ == '__main__':
         print("Starting seed...")
         # Seed code goes here!
 
+        book = Book(
+           title = fake.sentence(nb_words=randint(3,5)),
+           author = fake.name(),
+           published_date = fake.date_this_century()
+        )
+        db.session.add(book)
+        db.session.commit()
 
 
 
