@@ -33,6 +33,16 @@ if __name__ == '__main__':
         db.session.add(user)
         db.session.commit()
 
+        review = Review(content = fake.text(100),
+                        book_id = book.id,
+                        user_id = user.id
+                        )
+        db.session.add(review)
+        db.session.commit()
+
+    
+
+
 
 
 
