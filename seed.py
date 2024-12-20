@@ -13,9 +13,9 @@ from models import db, Book, User, Review
 if __name__ == '__main__':
     fake = Faker()
     with app.app_context():
-        print("Starting seed...")
+     print("Starting seed...")
         # Seed code goes here!
-
+     for _ in range(10):
         book = Book(
            title = fake.sentence(nb_words=randint(3,5)),
            author = fake.name(),
