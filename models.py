@@ -13,6 +13,9 @@ class Book(db.Model, SerializerMixin):
     author = db.Column(db.String, nullable=False)
     published_date = db.Column(db.Integer, nullable=False)
 
+    users = db.relationship('User', secondary='reviews', back_populates='books')
+    reviews = db.relationship('Review', back_populates='book', cascade='all, delete_orphan')
+
 
 class User(db.Model, SerializerMixin):
 
@@ -23,6 +26,10 @@ class User(db.Model, SerializerMixin):
     password = db.Column(db.String, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
 
+    books = db.relationship('Book', secondary='reviews', back_populates='users')
+    reviews = db.relationship('Review', back_populates='user', cascade='all, delete_orphan')
+
+    
     
 
 
@@ -35,6 +42,9 @@ class Review(db.Model, SerializerMixin):
 
     book_id = db.Column(db.Integer, db.ForeignKey('books.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+    book = db.relationship('Book', back_populates='reviews')
+    user = db.relationship('User', back_populates='reviews')
 
     
 
