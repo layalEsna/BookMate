@@ -13,6 +13,8 @@ class PetOwner(db.Model, SerializerMixin):
     owner_name = db.Column(db.String, nullable=False)
     pet_name = db.Column(db.String, nullable=False)
     pet_type = db.Column(db.String, nullable=False)
+    zip_code = db.Column(db.String, nullable=False)  
+
 
     pet_sitters = db.relationship('PetSitter', secondary='appointments', back_populates='pet_owners')
     appointments = db.relationship('Appointment', back_populates='pet_owner', cascade='all, delete-orphan')
@@ -39,6 +41,11 @@ class PetOwner(db.Model, SerializerMixin):
         if not pet_type or not isinstance(pet_type, str):
             raise ValueError('Pet type is required and must be type of string.')
         return pet_type
+    
+    @validates('zip_code')
+    def zip_code_validate(self, key,zip_code):
+
+        
     
         
 
@@ -71,6 +78,13 @@ class PetSitter(db.Model, SerializerMixin):
     appointments = db.relationship('Appointment', back_populates='pet_sitter', cascade='all, delete-orphan')
     
     serialize_only = ('id', 'sitter_name', 'location', 'price')
+
+    @validates('sitter_name')
+    def sitter_name_validat(self, key, sitter_name):
+        if not sitter_name or not isinstance(sitter_name, str):
+            raise ValueError('Pet sitter name is required and must be type of string.')
+        return sitter_name
+
 
 
         
