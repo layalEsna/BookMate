@@ -1,59 +1,122 @@
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
-from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import validates
+
 from config import db
 
+# Models go here!
+class PetOwner(db.Model, SerializerMixin):
 
-class Book(db.Model, SerializerMixin):
-
-    __tablename__ = 'books'
-
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String, nullable=False)
-    author = db.Column(db.String, nullable=False)
-    published_date = db.Column(db.Integer, nullable=False)
-
-    users = db.relationship('User', secondary='reviews', back_populates='books')
-    reviews = db.relationship('Review', back_populates='book', cascade='all, delete_orphan')
-
-
-class User(db.Model, SerializerMixin):
-
-    __tablename__ = 'users'
+    __tablename__ = 'pet_owners'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    password = db.Column(db.String, nullable=False)
-    email = db.Column(db.String, unique=True, nullable=False)
+    owner_name = db.Column(db.String, nullable=False)
+    pet_name = db.Column(db.String, nullable=False)
+    pet_type = db.Column(db.String, nullable=False)
 
-    books = db.relationship('Book', secondary='reviews', back_populates='users')
-    reviews = db.relationship('Review', back_populates='user', cascade='all, delete_orphan')
+    pet_sitters = db.relationship('PetSitter', secondary='appointments', back_populates='pet_owners')
+    appointments = db.relationship('Appointment', back_populates='pet_owner', cascade='all, delete-orphan')
 
+    serialize_only = ('id', 'owner_name', 'pet_name', 'pet_type')
+
+    @validates('owner_name')
+    def owner_name_validate(self, key, owner_name):
+
+        if not owner_name or not isinstance(owner_name, str):
+            raise ValueError('Owner name is required and must be type of string.')
+        return owner_name
     
+    @validates('pet_name')
+    def pet_name_validate(self, key, pet_name):
+
+        if not pet_name or not isinstance(pet_name, str):
+            raise ValueError('Pet name is required and must be type of string.')
+        return pet_name
     
+    @validates('pet_type')
+    def pet_type_validate(self, key, pet_type):
+
+        if not pet_type or not isinstance(pet_type, str):
+            raise ValueError('Pet type is required and must be type of string.')
+        return pet_type
+    
+        
 
 
-class Review(db.Model, SerializerMixin):
-
-    __tablename__ = 'reviews'
-
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable=False)
-
-    book_id = db.Column(db.Integer, db.ForeignKey('books.id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-
-    book = db.relationship('Book', back_populates='reviews')
-    user = db.relationship('User', back_populates='reviews')
 
     
 
 
+class PetSitter(db.Model, SerializerMixin):
+    # from sqlalchemy import func
+
+    __tablename__ = 'pet_sitters'
+
+    id = db.Column(db.Integer, primary_key=True)
+    sitter_name = db.Column(db.String, nullable=False)
+    location = db.Column(db.String, nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    
+
+    def avg_rating(self):
+        from sqlalchemy import func
+
+        rating = db.session.query(func.avg(Appointment.rating)).filter(
+
+            Appointment.pet_sitter_id == self.id).filter(
+                Appointment.rating != None).scalar()
+        return round(rating, 2) if rating else None
+    
+    pet_owners = db.relationship('PetOwner', secondary='appointments', back_populates='pet_sitters')
+    appointments = db.relationship('Appointment', back_populates='pet_sitter', cascade='all, delete-orphan')
+    
+    serialize_only = ('id', 'sitter_name', 'location', 'price')
+
+
+        
+
+
+
+class Appointment(db.Model, SerializerMixin):
+
+    __tablename__ = 'appointments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+    duration = db.Column(db.Float, nullable=False)
+    rating = db.Column(db.Integer, nullable=True, default=None)
+
+    pet_owner_id = db.Column(db.Integer, db.ForeignKey('pet_owners.id'), nullable=False)
+    pet_sitter_id = db.Column(db.Integer, db.ForeignKey('pet_sitters.id'), nullable=False)
+
+    status = db.Column(db.String, nullable=False)
+
+
+    pet_owner = db.relationship('PetOwner', back_populates='appointments')
+    pet_sitter = db.relationship('PetSitter', back_populates='appointments')
+
+
+    serialize_only = ('id', 'date', 'duration', 'rating', 'status', 'pet_owner_id', 'pet_sitter_id')
+
+
+
+# Stop the Server: Press CTRL+C to quit the running Flask server.
+
+# Enable Debug Mode:
+
+# Run:
+# bash
+# Copy code
+# export FLASK_ENV=development
+# flask run
 
 
 
 
+ 
 
+     
+ 
 
 
 
@@ -70,3 +133,4 @@ class Review(db.Model, SerializerMixin):
 # from config import db
 
 # # Models go here!
+# 
