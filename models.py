@@ -1,6 +1,7 @@
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import validates
+from uszipcode import SearchEngine
 
 from config import db
 
@@ -19,7 +20,8 @@ class PetOwner(db.Model, SerializerMixin):
     pet_sitters = db.relationship('PetSitter', secondary='appointments', back_populates='pet_owners')
     appointments = db.relationship('Appointment', back_populates='pet_owner', cascade='all, delete-orphan')
 
-    serialize_only = ('id', 'owner_name', 'pet_name', 'pet_type')
+    serialize_only = ('id', 'owner_name', 'pet_name', 'pet_type', 'zip_code')
+    search_engine = SearchEngine(simple_zipcode=True)
 
     @validates('owner_name')
     def owner_name_validate(self, key, owner_name):
@@ -42,10 +44,30 @@ class PetOwner(db.Model, SerializerMixin):
             raise ValueError('Pet type is required and must be type of string.')
         return pet_type
     
+    
     @validates('zip_code')
     def zip_code_validate(self, key,zip_code):
+        """
+        Validates that the zip code:
+        - Is a string of digits.
+        - Has exactly 5 characters.
+        - Exists in the real-world zip code database using the `uszipcode` library.
+    
+        Raises a ValueError if the zip code is invalid.
+        """
 
-        
+        if not zip_code.isdigit() or len(zip_code) != 5:
+            raise ValueError('Zip code must be a string of digits and must have 5 characters.')
+
+        try:
+            result = self.search_engine.by_zipcode(zip_code)
+            if not result.zipcode:
+                raise ValueError(f'Invalid zip code: {zip_code}')
+            return zip_code
+        except Exception as e:
+            raise ValueError(f'Error validating zip code: {str(e)}')
+
+
     
         
 
