@@ -62,6 +62,7 @@ def post():
     return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 
+
 if __name__ == '__main__':
     # Ensure the instance folder exists
     os.makedirs(os.path.join(BASE_DIR, 'instance'), exist_ok=True)
