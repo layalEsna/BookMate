@@ -2,6 +2,9 @@ from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import validates
 from uszipcode import SearchEngine
+from sqlalchemy.ext.hybrid import hybrid_property
+from app import bcrypt
+
 
 from config import db
 
@@ -11,7 +14,8 @@ class PetOwner(db.Model, SerializerMixin):
     __tablename__ = 'pet_owners'
 
     id = db.Column(db.Integer, primary_key=True)
-    owner_name = db.Column(db.String, nullable=False)
+    user_name = db.Column(db.String, nullable=False)
+    _hash_password = db.Column(db.String, nullable=False)
     pet_name = db.Column(db.String, nullable=False)
     pet_type = db.Column(db.String, nullable=False)
     zip_code = db.Column(db.String, nullable=False)  
@@ -20,15 +24,32 @@ class PetOwner(db.Model, SerializerMixin):
     pet_sitters = db.relationship('PetSitter', secondary='appointments', back_populates='pet_owners')
     appointments = db.relationship('Appointment', back_populates='pet_owner', cascade='all, delete-orphan')
 
-    serialize_only = ('id', 'owner_name', 'pet_name', 'pet_type', 'zip_code')
+    serialize_only = ('id', 'user_name', 'pet_name', 'pet_type', 'zip_code')
     search_engine = SearchEngine(simple_zipcode=True)
 
-    @validates('owner_name')
-    def owner_name_validate(self, key, owner_name):
+    @hybrid_property
+    def hash_password(self):
+        return self._hash_password
+    
+    @hash_password.setter
+    def hash_password(self,password):
+        hash_password = bcrypt.generate_password_hash(
+            password.encode('utf-8'))
+        self._hash_password = hash_password.decode('utf-8')
 
-        if not owner_name or not isinstance(owner_name, str):
-            raise ValueError('Owner name is required and must be type of string.')
-        return owner_name
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(
+            self._hash_password, password.encode('utf-8'))
+
+
+    
+
+    @validates('user_name')
+    def user_name_validate(self, key, user_name):
+
+        if not user_name or not isinstance(user_name, str):
+            raise ValueError('user name is required and must be type of string.')
+        return user_name
     
     @validates('pet_name')
     def pet_name_validate(self, key, pet_name):
@@ -40,8 +61,12 @@ class PetOwner(db.Model, SerializerMixin):
     @validates('pet_type')
     def pet_type_validate(self, key, pet_type):
 
+        validate_pets = ['cat', 'dog', 'bird']
+
         if not pet_type or not isinstance(pet_type, str):
             raise ValueError('Pet type is required and must be type of string.')
+        if pet_type not in validate_pets:
+            raise ValueError(f'Invalid pet type: {pet_type}. Must be one of {validate_pets}.')
         return pet_type
     
     
@@ -56,7 +81,7 @@ class PetOwner(db.Model, SerializerMixin):
         Raises a ValueError if the zip code is invalid.
         """
 
-        if not zip_code.isdigit() or len(zip_code) != 5:
+        if not zip_code or not zip_code.isdigit() or len(zip_code) != 5:
             raise ValueError('Zip code must be a string of digits and must have 5 characters.')
 
         try:

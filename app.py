@@ -7,13 +7,16 @@ import os
 from flask import Flask, request, make_response, jsonify
 from flask_restful import Resource
 from flask_migrate import Migrate
-
+from flask_bcrypt import Bcrypt
 # Local imports
 from models import PetOwner, PetSitter, Appointment
 from config import db, api  # You can import the api object if using Flask-Restful
 
+
 # Flask app initialization
 app = Flask(__name__)
+
+bcrypt = Bcrypt(app)
 
 # Set up the base directory and database path
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -29,6 +32,35 @@ migrate = Migrate(app, db)
 @app.route('/')
 def index():
     return '<h1>Project Server</h1>'
+
+@app.route('/signup', methods=['POST'])
+def post():
+  try:
+    data = request.get_json()
+    user_name = data.get('user_name')
+    password = data.get('password')
+    pet_name = data.get('pet_name')
+    pet_type = data.get('pet_type')
+    zip_code = data.get('zip_code')
+     
+    if not all([user_name, password, pet_name, pet_type, zip_code]):
+       return jsonify({'error': 'All fields are required.'}), 400
+    
+
+    new_pet_owner = PetOwner(
+        user_name  = user_name ,
+        hash_password = password,
+        pet_name =  pet_name,
+        pet_type = pet_type,
+        zip_code = zip_code
+    )
+    db.session.add(new_pet_owner)
+    db.session.commit()
+
+    return jsonify(new_pet_owner.to_dict()), 201
+  except Exception as e:
+    return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+
 
 if __name__ == '__main__':
     # Ensure the instance folder exists
