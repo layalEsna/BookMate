@@ -7,7 +7,7 @@ import os
 from flask import Flask, request, make_response, jsonify
 from flask_restful import Resource
 from flask_migrate import Migrate
-from flask_bcrypt import Bcrypt
+from extensions import bcrypt
 # Local imports
 from models import PetOwner, PetSitter, Appointment
 from config import db, api  # You can import the api object if using Flask-Restful
@@ -16,7 +16,7 @@ from config import db, api  # You can import the api object if using Flask-Restf
 # Flask app initialization
 app = Flask(__name__)
 
-bcrypt = Bcrypt(app)
+# bcrypt = Bcrypt(app)
 
 # Set up the base directory and database path
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))

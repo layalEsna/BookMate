@@ -3,13 +3,14 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import validates
 from uszipcode import SearchEngine
 from sqlalchemy.ext.hybrid import hybrid_property
-from app import bcrypt
+from extensions import bcrypt
 
 
 from config import db
 
 # Models go here!
 class PetOwner(db.Model, SerializerMixin):
+    
 
     __tablename__ = 'pet_owners'
 
