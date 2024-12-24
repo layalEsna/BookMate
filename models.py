@@ -27,29 +27,29 @@ class PetOwner(db.Model, SerializerMixin):
     serialize_only = ('id', 'user_name', 'pet_name', 'pet_type', 'zip_code')
     search_engine = SearchEngine(simple_zipcode=True)
 
-    @hybrid_property
-    def hash_password(self):
-        return self._hash_password
+    # @hybrid_property
+    # def hash_password(self):
+    #     return self._hash_password
     
-    @hash_password.setter
-    def hash_password(self,password):
-        hash_password = bcrypt.generate_password_hash(
-            password.encode('utf-8'))
-        self._hash_password = hash_password.decode('utf-8')
+    # @hash_password.setter
+    # def hash_password(self,password):
+    #     hash_password = bcrypt.generate_password_hash(
+    #         password.encode('utf-8'))
+    #     self._hash_password = hash_password.decode('utf-8')
 
-    def authenticate(self, password):
-        return bcrypt.check_password_hash(
-            self._hash_password, password.encode('utf-8'))
+    # def authenticate(self, password):
+    #     return bcrypt.check_password_hash(
+    #         self._hash_password, password.encode('utf-8'))
 
 
     
 
-    @validates('user_name')
-    def user_name_validate(self, key, user_name):
+    # @validates('user_name')
+    # def user_name_validate(self, key, user_name):
 
-        if not user_name or not isinstance(user_name, str):
-            raise ValueError('user name is required and must be type of string.')
-        return user_name
+    #     if not user_name or not isinstance(user_name, str):
+    #         raise ValueError('user name is required and must be type of string.')
+    #     return user_name
     
     @validates('pet_name')
     def pet_name_validate(self, key, pet_name):
